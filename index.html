@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0d1218">
+<title>KONTOR — Handelsimperium</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500..700&family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0d1218;
+  --bg2:#141c25;
+  --panel:#182230;
+  --panel2:#1e2a39;
+  --border:#2a3a4a;
+  --border-soft:#233140;
+  --gold:#cea15a;
+  --gold-dim:#8a713f;
+  --green:#5cb88a;
+  --red:#d1685a;
+  --blue:#6f9fc4;
+  --text:#eae4d4;
+  --text-dim:#94a3ad;
+  --text-faint:#5b6a76;
+  --radius:10px;
+  --shadow: 0 4px 18px rgba(0,0,0,.35);
+  font-size:16px;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{
+  height:100%; margin:0; overflow:hidden; overscroll-behavior:none;
+  background:var(--bg); color:var(--text);
+  font-family:'IBM Plex Sans',sans-serif;
+}
+button, input{font-family:inherit;}
+h1,h2,h3,.display{font-family:'Fraunces',serif;}
+.num,.mono{font-family:'IBM Plex Mono',monospace;}
+button{-webkit-user-select:none;user-select:none;touch-action:manipulation;}
+::-webkit-scrollbar{width:0;height:0;}
+
+#app{height:100%;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top);}
+
+/* ---------- TICKER ---------- */
+#ticker{
+  background:#080b0e; border-bottom:1px solid #000; height:30px; overflow:hidden;
+  flex:0 0 auto; position:relative;
+}
+#ticker::before, #ticker::after{
+  content:''; position:absolute; top:0; bottom:0; width:24px; z-index:2; pointer-events:none;
+}
+#ticker::before{left:0; background:linear-gradient(90deg,#080b0e,transparent);}
+#ticker::after{right:0; background:linear-gradient(270deg,#080b0e,transparent);}
+.ticker-track{
+  display:inline-block; white-space:nowrap; padding-left:100%;
+  animation:ticker-scroll 38s linear infinite;
+  font-family:'IBM Plex Mono',monospace; font-size:12.5px; line-height:30px;
+  color:#e0a94f; letter-spacing:.02em;
+}
+.ticker-track span.up{color:var(--green);}
+.ticker-track span.down{color:var(--red);}
+.ticker-sep{color:#3a3128; margin:0 14px;}
+@keyframes ticker-scroll{from{transform:translateX(0);}to{transform:translateX(-100%);}}
+
+/* ---------- HEADER ---------- */
+#header{
+  flex:0 0 auto; background:linear-gradient(180deg,var(--bg2),var(--bg));
+  border-bottom:1px solid var(--border); padding:10px 14px 12px;
+}
+.header-top{display:flex; align-items:center; justify-content:space-between; gap:10px;}
+.brand{display:flex; align-items:baseline; gap:8px; min-width:0;}
+.brand-mark{color:var(--gold); font-size:20px;}
+#companyName{
+  font-family:'Fraunces',serif; font-weight:600; font-size:19px; color:var(--text);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:44vw;
+}
+#gearBtn{
+  background:none; border:1px solid var(--border-soft); color:var(--text-dim);
+  width:36px;height:36px;border-radius:50%; font-size:16px; flex:0 0 auto;
+}
+.stat-row{display:flex; gap:8px; margin-top:10px; overflow-x:auto;}
+.stat-chip{
+  background:var(--panel); border:1px solid var(--border-soft); border-radius:8px;
+  padding:6px 12px; flex:0 0 auto; display:flex; flex-direction:column; gap:1px; min-width:88px;
+}
+.stat-chip .lbl{font-size:10px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-faint);}
+.stat-chip .val{font-family:'IBM Plex Mono',monospace; font-size:14.5px; font-weight:600;}
+.stat-chip.cash .val{color:var(--gold);}
+.stat-chip.research .val{color:var(--blue);}
+.stat-chip.shares .val{color:var(--green);}
+
+/* ---------- MAIN ---------- */
+main{flex:1 1 auto; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:16px 14px 90px;}
+.tabpane{display:none;}
+.tabpane.active{display:block;}
+
+.section-title{
+  font-family:'Fraunces',serif; font-size:15px; text-transform:uppercase; letter-spacing:.08em;
+  color:var(--text-faint); margin:22px 0 10px; display:flex; align-items:center; gap:8px;
+}
+.section-title:first-child{margin-top:0;}
+.section-title::after{content:''; flex:1; height:1px; background:var(--border-soft);}
+
+.card-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px;}
+.stat-card{
+  background:var(--panel); border:1px solid var(--border-soft); border-radius:var(--radius);
+  padding:14px; box-shadow:var(--shadow);
+}
+.stat-card .k{font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-faint); margin-bottom:6px;}
+.stat-card .v{font-family:'IBM Plex Mono',monospace; font-size:20px; font-weight:600; color:var(--text);}
+.stat-card .v.gold{color:var(--gold);}
+.stat-card .v.green{color:var(--green);}
+
+.progress-outer{background:#0a0f14; border:1px solid var(--border-soft); border-radius:6px; height:10px; overflow:hidden; margin-top:8px;}
+.progress-inner{background:linear-gradient(90deg,var(--gold-dim),var(--gold)); height:100%;}
+
+.ipo-banner{
+  background:linear-gradient(135deg,#25321f,#1a2418); border:1px solid #3c5a30; border-radius:var(--radius);
+  padding:16px; margin-top:16px; display:flex; align-items:center; justify-content:space-between; gap:12px;
+}
+.ipo-banner h3{margin:0 0 4px; color:var(--green); font-size:16px;}
+.ipo-banner p{margin:0; font-size:12.5px; color:var(--text-dim);}
+.btn{
+  background:var(--panel2); border:1px solid var(--border-soft); color:var(--text);
+  border-radius:7px; padding:9px 14px; font-size:13.5px; font-weight:600; cursor:pointer;
+}
+.btn.primary{background:var(--gold); border-color:var(--gold); color:#231a0c;}
+.btn.green{background:var(--green); border-color:var(--green); color:#0c231a;}
+.btn:disabled{opacity:.4;}
+.btn.small{padding:6px 10px; font-size:12px;}
+
+/* industry accordion */
+.industry{
+  background:var(--panel); border:1px solid var(--border-soft); border-radius:var(--radius);
+  margin-bottom:12px; overflow:hidden; box-shadow:var(--shadow);
+}
+.industry-head{
+  display:flex; align-items:center; gap:10px; padding:13px 14px; cursor:pointer;
+}
+.industry-head .icon{font-size:22px;}
+.industry-head .info{flex:1; min-width:0;}
+.industry-head .name{font-family:'Fraunces',serif; font-size:15.5px; font-weight:600;}
+.industry-head .sub{font-size:11.5px; color:var(--text-faint);}
+.industry-head .chev{color:var(--text-faint); transition:transform .2s;}
+.industry.open .chev{transform:rotate(90deg);}
+.industry-body{display:none; border-top:1px solid var(--border-soft);}
+.industry.open .industry-body{display:block;}
+
+.biz{padding:12px 14px; border-bottom:1px solid var(--border-soft); display:flex; flex-direction:column; gap:8px;}
+.biz:last-child{border-bottom:none;}
+.biz-top{display:flex; align-items:center; gap:10px;}
+.biz-icon{font-size:24px; width:34px; text-align:center;}
+.biz-name{font-weight:600; font-size:14.5px;}
+.biz-meta{font-size:11.5px; color:var(--text-faint); font-family:'IBM Plex Mono',monospace;}
+.biz-level{margin-left:auto; text-align:right; font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--gold);}
+.biz-buy-row{display:flex; gap:6px;}
+.biz-buy-row .btn{flex:1;}
+.biz-locked{padding:14px; text-align:center; color:var(--text-faint); font-size:12.5px;}
+
+/* market */
+.good-row{
+  background:var(--panel); border:1px solid var(--border-soft); border-radius:var(--radius);
+  padding:12px 14px; margin-bottom:9px; display:flex; align-items:center; gap:12px;
+}
+.good-icon{font-size:24px; width:32px; text-align:center;}
+.good-info{flex:1; min-width:0;}
+.good-name{font-weight:600; font-size:14px;}
+.good-sub{font-size:11.5px; color:var(--text-faint); font-family:'IBM Plex Mono',monospace;}
+.good-price{text-align:right; font-family:'IBM Plex Mono',monospace;}
+.good-price .p{font-size:14.5px; font-weight:600;}
+.good-price .t{font-size:11px;}
+.good-price .t.up{color:var(--green);} .good-price .t.down{color:var(--red);}
+.good-actions{display:flex; flex-direction:column; gap:5px; align-items:stretch;}
+.auto-toggle{
+  display:flex; align-items:center; gap:5px; font-size:10.5px; color:var(--text-faint);
+  border:1px solid var(--border-soft); border-radius:6px; padding:4px 7px; cursor:pointer;
+}
+.auto-toggle.on{color:var(--green); border-color:var(--green);}
+
+/* research */
+.rgrid{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:10px;}
+.rnode{
+  background:var(--panel); border:1px solid var(--border-soft); border-radius:var(--radius); padding:12px;
+  display:flex; flex-direction:column; gap:6px;
+}
+.rnode.done{border-color:var(--green); background:#152018;}
+.rnode.locked{opacity:.5;}
+.rnode .rname{font-weight:600; font-size:13.5px;}
+.rnode .rdesc{font-size:11.5px; color:var(--text-dim); line-height:1.4;}
+.rnode .rfoot{display:flex; align-items:center; justify-content:space-between; margin-top:4px;}
+.rnode .rcost{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--blue);}
+
+/* team */
+.emp-card{
+  background:var(--panel); border:1px solid var(--border-soft); border-radius:var(--radius);
+  padding:14px; margin-bottom:10px; display:flex; align-items:center; gap:12px;
+}
+.emp-icon{font-size:28px; width:40px; text-align:center;}
+.emp-info{flex:1;}
+.emp-name{font-weight:600; font-size:14.5px;}
+.emp-desc{font-size:11.5px; color:var(--text-faint); margin-top:2px;}
+.emp-lvl{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--gold); margin-top:3px;}
+
+/* achievements */
+.ach-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px;}
+.ach{
+  background:var(--panel); border:1px solid var(--border-soft); border-radius:var(--radius);
+  padding:12px; text-align:center; opacity:.4;
+}
+.ach.unlocked{opacity:1; border-color:var(--gold);}
+.ach .aicon{font-size:26px;}
+.ach .aname{font-size:12px; font-weight:600; margin-top:5px;}
+.ach .adesc{font-size:10.5px; color:var(--text-faint); margin-top:2px;}
+
+/* ---------- NAV ---------- */
+nav#tabbar{
+  position:fixed; left:0; right:0; bottom:0; z-index:10;
+  display:flex; background:var(--bg2); border-top:1px solid var(--border);
+  padding-bottom:env(safe-area-inset-bottom);
+}
+nav#tabbar button{
+  flex:1; background:none; border:none; color:var(--text-faint); padding:9px 2px 8px;
+  display:flex; flex-direction:column; align-items:center; gap:2px; font-size:9.5px;
+  letter-spacing:.02em; min-height:52px;
+}
+nav#tabbar button .ic{font-size:19px;}
+nav#tabbar button.active{color:var(--gold);}
+
+/* ---------- MODALS ---------- */
+.modal-overlay{
+  position:fixed; inset:0; background:rgba(6,9,12,.72); z-index:50; display:none;
+  align-items:center; justify-content:center; padding:22px; backdrop-filter:blur(2px);
+}
+.modal-overlay.show{display:flex;}
+.modal{
+  background:var(--bg2); border:1px solid var(--border); border-radius:14px; padding:22px;
+  max-width:420px; width:100%; max-height:82vh; overflow-y:auto; box-shadow:0 10px 40px rgba(0,0,0,.5);
+}
+.modal h2{margin:0 0 4px; font-size:19px;}
+.modal p{color:var(--text-dim); font-size:13.5px; line-height:1.5;}
+.modal .row{display:flex; gap:8px; margin-top:16px;}
+.modal .row .btn{flex:1;}
+.modal input[type=text]{
+  width:100%; background:var(--panel); border:1px solid var(--border-soft); color:var(--text);
+  padding:10px 12px; border-radius:8px; font-size:15px; margin-top:8px;
+}
+.modal .close-x{position:absolute; margin-top:-8px; margin-left:calc(100% - 28px); background:none;border:none;color:var(--text-faint);font-size:18px;}
+
+.settings-list{display:flex; flex-direction:column; gap:8px; margin-top:12px;}
+.settings-list .btn{width:100%; text-align:left;}
+
+#toastWrap{position:fixed; top:calc(env(safe-area-inset-top) + 66px); left:0; right:0; z-index:60; display:flex; flex-direction:column; align-items:center; gap:8px; pointer-events:none;}
+.toast{
+  background:#1c2a1e; border:1px solid var(--green); color:#d9f0d9; padding:10px 16px; border-radius:9px;
+  font-size:13px; box-shadow:var(--shadow); animation:toast-in .25s ease, toast-out .4s ease 3.2s forwards;
+  display:flex; align-items:center; gap:8px;
+}
+@keyframes toast-in{from{opacity:0; transform:translateY(-10px);} to{opacity:1; transform:translateY(0);}}
+@keyframes toast-out{to{opacity:0; transform:translateY(-8px);}}
+
+.float-gain{
+  position:fixed; font-family:'IBM Plex Mono',monospace; font-weight:700; color:var(--gold);
+  pointer-events:none; z-index:55; animation:float-up 1s ease forwards; font-size:14px;
+}
+@keyframes float-up{from{opacity:1; transform:translateY(0);} to{opacity:0; transform:translateY(-38px);}}
+
+.empty-note{text-align:center; color:var(--text-faint); font-size:12.5px; padding:30px 10px;}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="ticker"><div class="ticker-track" id="tickerTrack">Lade Markt…</div></div>
+
+  <div id="header">
+    <div class="header-top">
+      <div class="brand">
+        <span class="brand-mark">◆</span>
+        <span id="companyName">Mein Unternehmen</span>
+      </div>
+      <button id="gearBtn">⚙</button>
+    </div>
+    <div class="stat-row">
+      <div class="stat-chip cash"><span class="lbl">Bargeld</span><span class="val num" id="hCash">€0</span></div>
+      <div class="stat-chip research"><span class="lbl">Forschung</span><span class="val num" id="hResearch">0</span></div>
+      <div class="stat-chip shares"><span class="lbl">Aktien</span><span class="val num" id="hShares">0</span></div>
+      <div class="stat-chip"><span class="lbl">Tag</span><span class="val num" id="hDay">1</span></div>
+    </div>
+  </div>
+
+  <main>
+    <div class="tabpane active" id="tab-overview"></div>
+    <div class="tabpane" id="tab-businesses"></div>
+    <div class="tabpane" id="tab-market"></div>
+    <div class="tabpane" id="tab-research"></div>
+    <div class="tabpane" id="tab-team"></div>
+    <div class="tabpane" id="tab-achievements"></div>
+  </main>
+
+  <nav id="tabbar">
+    <button data-tab="overview" class="active"><span class="ic">◆</span>Übersicht</button>
+    <button data-tab="businesses"><span class="ic">🏭</span>Betriebe</button>
+    <button data-tab="market"><span class="ic">📈</span>Markt</button>
+    <button data-tab="research"><span class="ic">⚗</span>Forschung</button>
+    <button data-tab="team"><span class="ic">👥</span>Team</button>
+    <button data-tab="achievements"><span class="ic">🏆</span>Erfolge</button>
+  </nav>
+</div>
+
+<div id="toastWrap"></div>
+
+<div class="modal-overlay" id="modalWelcome">
+  <div class="modal">
+    <h2>Willkommen bei KONTOR</h2>
+    <p>Du übernimmst ein kleines Unternehmen mit einem Bauernhof und großen Plänen. Baue Produktionsketten auf, erschließe neue Branchen, verkaufe auf dem Markt und expandiere über Wochen hinweg zu einem Imperium.</p>
+    <p>Wie soll dein Unternehmen heißen?</p>
+    <input type="text" id="nameInput" maxlength="24" placeholder="z. B. Nordwind Handel">
+    <div class="row"><button class="btn primary" id="startGameBtn" style="width:100%">Unternehmen gründen</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalOffline">
+  <div class="modal">
+    <h2>Willkommen zurück</h2>
+    <p id="offlineText"></p>
+    <div class="row"><button class="btn primary" id="closeOfflineBtn" style="width:100%">Weiter geht's</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalSettings">
+  <div class="modal">
+    <h2>Einstellungen</h2>
+    <p>Firmenname</p>
+    <input type="text" id="renameInput" maxlength="24">
+    <div class="settings-list">
+      <button class="btn" id="saveNowBtn">💾 Jetzt speichern</button>
+      <button class="btn" id="exportBtn">⬇ Spielstand exportieren</button>
+      <button class="btn" id="importBtn">⬆ Spielstand importieren</button>
+      <input type="file" id="importFile" accept="application/json" style="display:none">
+      <button class="btn" id="soundBtn">🔊 Sound: An</button>
+      <button class="btn" style="border-color:var(--red); color:var(--red)" id="resetBtn">↺ Spiel zurücksetzen</button>
+    </div>
+    <div class="row"><button class="btn" id="closeSettingsBtn" style="width:100%">Schließen</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalPrestige">
+  <div class="modal">
+    <h2>Börsengang</h2>
+    <p id="prestigeText"></p>
+    <p style="color:var(--red)">Bargeld, Betriebe und Lager werden zurückgesetzt. Forschung, Team und Erfolge bleiben erhalten.</p>
+    <div class="row">
+      <button class="btn" id="cancelPrestigeBtn">Abbrechen</button>
+      <button class="btn green" id="confirmPrestigeBtn">Börsengang durchführen</button>
+    </div>
+  </div>
+</div>
+
+<script src="game.js"></script>
+</body>
+</html>
